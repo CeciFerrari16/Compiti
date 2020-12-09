@@ -1,4 +1,4 @@
-#Compiti di informatica
+# Compiti di informatica
 
 In questo repository sono presenti i compiti di informatica per il 10/12/2020.
 
