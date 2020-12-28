@@ -1,6 +1,6 @@
 '''
 Implementa l'algoritmo per il calcolo della soluzione di un'equazione di primo grado a x + b = 0.
-Il processo risolutivo dipende dai valori assunti dai coefficienti a e b secondo la tabella allegata nel README.md file
+Il processo risolutivo dipende dai valori assunti dai coefficienti a e b secondo la tabella caricata sulla repository
 '''
 import fractions
 
