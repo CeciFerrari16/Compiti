@@ -6,19 +6,15 @@ nazione = ["Italia", "Australia", "Belgio", "Brasile", "Corea del Sud", "Danimar
 capitale = ["Roma", "Canberra", "Bruxelles", "Brasilia", "Seul", "Copenaghen", "Parigi", "Dublino", "Londra"]
 d = {}
 
-nazione_M = []
-for e in nazione:
-    nazione_M.append(e.upper())
-
 for n in range(len(nazione)):
-    d[nazione_M[n]] = capitale[n]
+    d[nazione[n].upper()] = capitale[n]
 
 l = ", ".join(nazione)
 print(l)
 
 nazione_user = input("Di quale nazione vuoi sapere la capitale? ").upper()
 
-if nazione_user in nazione_M:
+if nazione_user in d:
     print(d[nazione_user])
 else:
     print("La nazione che hai scritto non è presente nell'elenco.")

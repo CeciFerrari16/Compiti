@@ -18,7 +18,7 @@ print(l)
 
 capitale_user = input("Di quale capitale vuoi sapere la nazione? ").upper()
 
-if capitale_user in capitale_M:
+if capitale_user in d:
     print(d[capitale_user])
 else:
     print("La nazione che hai scritto non è presente nell'elenco.")
