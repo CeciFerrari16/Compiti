@@ -1,3 +1,8 @@
+'''
+Con riferimento al dizionario del problema precedente (es25.py) elenca i numeri di matricola degli studenti che
+hanno ottenuto una votazione superiore alla media di tutte le votazioni
+'''
+
 prova = {}
 matricola = 0
 top = []
