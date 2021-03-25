@@ -1,7 +1,8 @@
 # Lezione sulle classi
+import os
 from random import randint
+
 all_dir = ["up", "down", "left", "right"]
-name_entity = ""
 
 def list_trick(list1, e):
   list1.remove(e)
@@ -84,6 +85,7 @@ class Field:
     self.entities = []
 
   def draw(self):
+    #os.system("clear")
     for y in range(self.h):
       for x in range(self.w):
         for e in self.entities:
