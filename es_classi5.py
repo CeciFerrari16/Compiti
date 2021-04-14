@@ -31,6 +31,10 @@ class Entity:
 
     e = self.field.get_entity_at_coords(futureX, futureY)
 
+    # guardia
+    if self.x == futureX and self.y == futureY:
+      return
+    
     if e == None:
       self.x = futureX
       self.y = futureY
@@ -106,7 +110,6 @@ while True:  #comandi player
 
   command = input("input: ").lower()
 
-  #num_e = len(field.entities)
   m1.move(random_element(all_dir))
   m2.move(random_element(all_dir))
   #if num_e == 1:
