@@ -106,7 +106,7 @@ class Field:
     self.entities = []
     self.score = 0
     self.levelNumber = levelNumber
-    self.levelTot = 3
+    self.levelTot = 4
     self.goldNumber = 0
 
     f = open("./level" + str(levelNumber) + ".level", "r")
