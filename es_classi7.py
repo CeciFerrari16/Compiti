@@ -139,8 +139,8 @@ class Field:
   
   def check_score(self, value):
     if self.score == self.goldNumber * value:
-      print("Complimenti, puoi passare al livello successivo!")
-      print("Digita:", self.levelNumber + 1)
+      print("Great job, you can level up!")
+      print("Digit:", self.levelNumber + 1)
       return True
     else:
       pass
@@ -151,12 +151,11 @@ class Field:
       print("YOU WON THE GAME!!")
       print("thank you for playing <3")
       return True
-    else:
-      pass
+    else: pass
 
   def draw(self):
     print("level:", self.levelNumber)
-    print("n° tesori:", self.goldNumber)
+    print("n° golds:", self.goldNumber)
     print("score:", self.score)
     for y in range(self.h):
       for x in range(self.w):
@@ -167,6 +166,9 @@ class Field:
         else:
           print("[ ]", end = "")
       print()
+    if self.levelNumber == self.levelTot:
+      print("This is the last level!")
+    else: pass
   
   def update(self):
     for e in self.entities:
@@ -187,13 +189,13 @@ while True:
   field.draw()
   pass1 = field.check_score(100) # level completed
   if pass1 == True:
-    completed += 1
+    completed = field.levelNumber
 
   if field.check_victory(completed) == True: # victory
     break
   command = input("input: ").lower()
   clear_screen()
-
+  
   if command == "q": break
   elif command == "w": field.player.move("up")
   elif command == "a": field.player.move("left")
