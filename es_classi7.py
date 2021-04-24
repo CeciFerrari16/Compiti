@@ -204,6 +204,12 @@ def clear_screen():
   else:
     os.system("clear")
 
+def restart(decision = "yes"):
+  if decision == "yes":
+      exec(open("./es_classi7.py").read())
+  else:
+      print("Ok, thank you for playing!")
+  
 reward = 0
 completed = 0
 clear_screen()
@@ -211,18 +217,17 @@ while True:
   field.update()
   field.draw()
 
-  if field.check_death() == True:
-    clear_screen()
-    print("YOU ARE DEAD </3")
-    print("restart the game to respawn")
-
   pass1 = field.check_score() # level completed
   if pass1 == True:
     completed = field.levelNumber
   
+  if field.check_death() == True:
+    clear_screen()
+    print("GAME OVER")
+    print("If you want to restart tap 'r'")
+  
   if field.check_enemy() == True and reward == 0:
     field.player.hp += 10
-    print("I am here")
     reward += 1
 
   if field.check_victory(completed) == True: # victory
@@ -232,19 +237,23 @@ while True:
   clear_screen()
   
   if command == "q": break
-  elif command == "w": field.player.move("up")
-  elif command == "a": field.player.move("left")
-  elif command == "s": field.player.move("down")
-  elif command == "d": field.player.move("right")
-  elif command == "i": 
-    field.info_level()
-    reply = input("Write 'y' if you are ready to continue: ").lower()
-    if reply == "y": continue
-  elif command.isnumeric() == True : 
-    if pass1 == True and field.check_death() != True:
-      reward = 0
-      field.levelNumber = int(command)
-      hp = field.player.hp 
-      field = Field(field.levelNumber)
-      field.player.hp = hp  
-    else: print("You MUST finish this level before change it!")
+  elif command == "r": restart()
+  elif field.check_death() != True:
+    if command == "w": field.player.move("up")
+    elif command == "a": field.player.move("left")
+    elif command == "s": field.player.move("down")
+    elif command == "d": field.player.move("right")
+    elif command == "r": restart()
+    elif command == "i": 
+      field.info_level()
+      reply = input("Write 'y' if you are ready to continue: ").lower()
+      if reply == "y": continue
+    elif command.isnumeric() == True : 
+      if pass1 == True and field.check_death() != True:
+        reward = 0
+        field.levelNumber = int(command)
+        hp = field.player.hp 
+        field = Field(field.levelNumber)
+        field.player.hp = hp  
+      else: print("You MUST finish this level before change it!")
+    else: pass
