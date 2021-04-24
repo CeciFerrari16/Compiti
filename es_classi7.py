@@ -248,7 +248,7 @@ while True:
       field.info_level()
       reply = input("Write 'y' if you are ready to continue: ").lower()
       if reply == "y": continue
-    elif command.isnumeric() == True : 
+    elif command.isnumeric() == True and int(command) == field.levelNumber + 1: 
       if pass1 == True and field.check_death() != True:
         reward = 0
         field.levelNumber = int(command)
