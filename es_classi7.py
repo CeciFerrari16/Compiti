@@ -1,5 +1,3 @@
-# Aggiungere i livelli:
-# dopo un numero di score o gold si passa al livello successivo. Completati si ha la schermata di vittoria.
 import os
 from random import choice
 
@@ -59,6 +57,7 @@ class Living_Entity(Entity):
     self.hp = hp
     self.max_hp = hp
     self.damage = damage
+    self.status = "alive"
 
   def info(self):
     print("sono", self.name, "hp:", self.hp, "/", self.max_hp, "e mi trovo a", self.x, ",", self.y)
@@ -72,6 +71,7 @@ class Living_Entity(Entity):
       if (enemy.hp <= 0):
         print(enemy.name, "e' morto")
         self.field.entities.remove(enemy)
+        self.field.enemyRemain -= 1
       else:
         enemy.hp -= self.damage
 
@@ -100,6 +100,7 @@ class Player(Living_Entity):
     elif isinstance(entity, Gold):
       self.field.score += entity.value
       self.field.entities.remove(entity)
+      self.field.goldRemain -= 1
 
 class Field:
   def __init__(self, levelNumber):
@@ -108,6 +109,7 @@ class Field:
     self.levelNumber = levelNumber
     self.levelTot = 4
     self.goldNumber = 0
+    self.enemyNumber = 0
 
     f = open("./level" + str(levelNumber) + ".level", "r")
     rows = f.read().split("\n")
@@ -125,10 +127,14 @@ class Field:
         elif char == "#":
           Wall(x, y, self)
         elif char == "$":
-          Gold(x, y, self)
+          self.gold = Gold(x, y, self)
           self.goldNumber += 1
         elif char == "m":
-          Monster(x, y, "Monster", self)
+          self.enemy = Monster(x, y, "Monster", self)
+          self.enemyNumber += 1
+    
+    self.goldRemain = self.goldNumber
+    self.enemyRemain = self.enemyNumber
 
   def get_entity_at_coords(self, x, y):
     for e in self.entities:
@@ -137,8 +143,8 @@ class Field:
 
     return None
   
-  def check_score(self, value):
-    if self.score == self.goldNumber * value:
+  def check_score(self):
+    if self.score == self.goldNumber * self.gold.value:
       print("Great job, you can level up!")
       print("Digit:", self.levelNumber + 1)
       return True
@@ -152,11 +158,27 @@ class Field:
       print("thank you for playing <3")
       return True
     else: pass
+  
+  def check_enemy(self):
+    if self.enemyRemain == 0:
+      return True
+    else: pass
+  
+  def check_death(self):
+    if self.player.hp <= 0:
+      self.player.status = "dead"
+      return True
+    else: pass
+  
+  def info_level(self):
+    print("level:", self.levelNumber)
+    print("n° golds:", self.goldRemain, "/", self.goldNumber)
+    print("n° enemies:", self.enemyRemain, "/", self.enemyNumber)
+    print("status:", self.player.status)
 
   def draw(self):
-    print("level:", self.levelNumber)
-    print("n° golds:", self.goldNumber)
     print("score:", self.score)
+    print("hp:", self.player.hp)
     for y in range(self.h):
       for x in range(self.w):
         for e in self.entities:
@@ -182,17 +204,30 @@ def clear_screen():
   else:
     os.system("clear")
 
+reward = 0
 completed = 0
 clear_screen()
 while True: 
   field.update()
   field.draw()
-  pass1 = field.check_score(100) # level completed
+
+  if field.check_death() == True:
+    clear_screen()
+    print("YOU ARE DEAD </3")
+    print("restart the game to respawn")
+
+  pass1 = field.check_score() # level completed
   if pass1 == True:
     completed = field.levelNumber
+  
+  if field.check_enemy() == True and reward == 0:
+    field.player.hp += 10
+    print("I am here")
+    reward += 1
 
   if field.check_victory(completed) == True: # victory
     break
+
   command = input("input: ").lower()
   clear_screen()
   
@@ -201,8 +236,15 @@ while True:
   elif command == "a": field.player.move("left")
   elif command == "s": field.player.move("down")
   elif command == "d": field.player.move("right")
+  elif command == "i": 
+    field.info_level()
+    reply = input("Write 'y' if you are ready to continue: ").lower()
+    if reply == "y": continue
   elif command.isnumeric() == True : 
-    if pass1 == True:
+    if pass1 == True and field.check_death() != True:
+      reward = 0
       field.levelNumber = int(command)
+      hp = field.player.hp 
       field = Field(field.levelNumber)
-    else: print("Devi finire prima questo livello!")
+      field.player.hp = hp  
+    else: print("You MUST finish this level before change it!")
