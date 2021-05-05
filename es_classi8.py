@@ -3,13 +3,22 @@ from random import choice
 
 DIRECTIONS = "up", "down", "left", "right"
 
+def clear_screen():
+  if os.name == "nt":
+    os.system("cls")
+  else:
+    os.system("clear")
 class Entity: 
   def __init__(self, x, y, field, graphic):
     self.x = x
     self.y = y
+    self.graphic = graphic
+    if field != None:
+      self.add_to_field(field)
+
+  def add_to_field(self, field):
     self.field = field
     self.field.entities.append(self)
-    self.graphic = graphic
 
   def move(self, direction):
     futureX = self.x
@@ -57,7 +66,6 @@ class Living_Entity(Entity):
     self.hp = hp
     self.max_hp = hp
     self.damage = damage
-    self.status = "alive"
 
   def info(self):
     print("sono", self.name, "hp:", self.hp, "/", self.max_hp, "e mi trovo a", self.x, ",", self.y)
@@ -71,7 +79,6 @@ class Living_Entity(Entity):
       if (enemy.hp <= 0):
         print(enemy.name, "e' morto")
         self.field.entities.remove(enemy)
-        self.field.enemyRemain -= 1
       else:
         enemy.hp -= self.damage
 
@@ -98,20 +105,25 @@ class Player(Living_Entity):
     if isinstance(entity, Monster):
       self.attack(entity)
     elif isinstance(entity, Gold):
-      self.field.score += entity.value
+      game.score.append(entity.value)
       self.field.entities.remove(entity)
-      self.field.goldRemain -= 1
 
 class Field:
-  def __init__(self, levelNumber):
+  def __init__(self, level_number, player):
     self.entities = []
-    self.score = 0
-    self.levelNumber = levelNumber
-    self.levelTot = 4
-    self.goldNumber = 0
-    self.enemyNumber = 0
+    #self.score = []
+    self.level_number = level_number
+    self.player = player
 
-    f = open("./level" + str(levelNumber) + ".level", "r")
+  def has_gold(self):
+    for e in self.entities:
+      if isinstance(e, Gold):
+        return True
+    
+    return False
+
+  def load_level(self):
+    f = open("./level" + str(self.level_number) + ".level", "r")
     rows = f.read().split("\n")
     f.close()
 
@@ -123,18 +135,15 @@ class Field:
       for x in range(self.w):
         char = row[x]
         if char == "p":
-          self.player = Player(x, y, "Player", self)
+          self.player.x = x
+          self.player.y = y
+          self.player.add_to_field(self)
         elif char == "#":
           Wall(x, y, self)
         elif char == "$":
-          self.gold = Gold(x, y, self)
-          self.goldNumber += 1
+          Gold(x, y, self)
         elif char == "m":
-          self.enemy = Monster(x, y, "Monster", self)
-          self.enemyNumber += 1
-    
-    self.goldRemain = self.goldNumber
-    self.enemyRemain = self.enemyNumber
+          Monster(x, y, "Monster", self)
 
   def get_entity_at_coords(self, x, y):
     for e in self.entities:
@@ -142,43 +151,9 @@ class Field:
         return e
 
     return None
-  
-  def check_score(self):
-    if self.score == self.goldNumber * self.gold.value:
-      print("Great job, you can proceed to the next level!")
-      print("Digit:", self.levelNumber + 1)
-      return True
-    else:
-      pass
     
-  def check_victory(self, number):
-    if number == self.levelTot:
-      clear_screen()
-      print("YOU WON THE GAME!!")
-      print("thank you for playing <3")
-      return True
-    else: pass
-  
-  def check_enemy(self):
-    if self.enemyRemain == 0:
-      return True
-    else: pass
-  
-  def check_death(self):
-    if self.player.hp <= 0:
-      self.player.status = "dead"
-      return True
-    else: pass
-  
-  def info_level(self):
-    print("level:", self.levelNumber)
-    print("n° golds:", self.goldRemain, "/", self.goldNumber)
-    print("n° enemies:", self.enemyRemain, "/", self.enemyNumber)
-    print("status:", self.player.status)
-
   def draw(self):
-    print("score:", self.score)
-    print("hp:", self.player.hp)
+    print("score:", sum(game.score))
     for y in range(self.h):
       for x in range(self.w):
         for e in self.entities:
@@ -188,72 +163,70 @@ class Field:
         else:
           print("[ ]", end = "")
       print()
-    if self.levelNumber == self.levelTot:
-      print("This is the last level!")
-    else: pass
   
   def update(self):
     for e in self.entities:
       e.update()
 
-field = Field(1)
+class Game:
+  def __init__(self, levels):
+    self.score = []
+    self.player = Player(0, 0, "Player", None)
+    self.fields = []
+    self.levels = levels
+    for i in range(1, levels + 1):
+      self.fields.append(Field(i, self.player))
+    
+    self.current_field = None
+    self.current_level_index = -1
+    self.status = "STOPPED"
 
-def clear_screen():
-  if os.name == "nt":
-    os.system("cls")
-  else:
-    os.system("clear")
+  def next_level(self):
+    self.status = "RUNNING"
+    if self.current_level_index < self.levels - 1:
+      self.current_level_index += 1
+      self.current_field = self.fields[self.current_level_index]
+      self.current_field.load_level()
+    else:
+      self.win()
 
-def restart(decision = "yes"):
-  if decision == "yes":
-      exec(open("./es_classi7.py").read())
-  else:
-      print("Ok, thank you for playing!")
-  
-reward = 0
-completed = 0
-clear_screen()
-while True: 
-  field.update()
-  field.draw()
-
-  pass1 = field.check_score() # level completed
-  if pass1 == True:
-    completed = field.levelNumber
-  
-  if field.check_death() == True:
+  def win(self):
     clear_screen()
-    print("GAME OVER")
-    print("If you want to restart tap 'r'")
-  
-  if field.check_enemy() == True and reward == 0:
-    field.player.hp += 10
-    reward += 1
+    self.status = "STOPPED"
+    print("THE WINNER IS YOU!")
 
-  if field.check_victory(completed) == True: # victory
-    break
+  def game_over(self):
+    clear_screen()
+    self.status = "STOPPED"
+    print("GAME OVER!")
+
+  def update(self):
+    if self.status == "RUNNING":
+      self.current_field.update()
+      if self.player.hp <= 0:
+        self.game_over()
+
+      if self.current_field.has_gold() == False:
+        self.next_level()
+  
+  def draw(self):
+    if self.status == "RUNNING":
+      self.current_field.draw()
+
+game = Game(4)
+game.next_level()
+
+clear_screen()
+while True:  
+  game.update()
+  game.draw()
 
   command = input("input: ").lower()
   clear_screen()
-  
+
   if command == "q": break
-  elif command == "r": restart()
-  elif field.check_death() != True:
-    if command == "w": field.player.move("up")
-    elif command == "a": field.player.move("left")
-    elif command == "s": field.player.move("down")
-    elif command == "d": field.player.move("right")
-    elif command == "r": restart()
-    elif command == "i": 
-      field.info_level()
-      reply = input("Write 'y' if you are ready to continue: ").lower()
-      if reply == "y": continue
-    elif command.isnumeric() == True and int(command) == field.levelNumber + 1: 
-      if pass1 == True and field.check_death() != True:
-        reward = 0
-        field.levelNumber = int(command)
-        hp = field.player.hp 
-        field = Field(field.levelNumber)
-        field.player.hp = hp  
-      else: print("You MUST finish this level before changing it!")
-    else: pass
+  elif command == "w": game.player.move("up")
+  elif command == "a": game.player.move("left")
+  elif command == "s": game.player.move("down")
+  elif command == "d": game.player.move("right")
+  elif command == "z": game.next_level()
